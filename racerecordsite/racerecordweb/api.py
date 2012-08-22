@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL,ALL_WITH_RELATIONS
-from racerecordweb.models import Lap, TrialResult, Trial, Location
+from racerecordweb.models import Lap, TrialResult, Trial, Location, Driver
 from tastypie.authorization import Authorization
 import copy
 
@@ -18,6 +18,22 @@ class LocationResource(ModelResource):
                 del(data_dict['meta'])
                 # Rename the objects.
                 data_dict['locations'] = copy.copy(data_dict['objects'])
+                del(data_dict['objects'])
+        return data_dict
+
+class DriverResource(ModelResource):
+    class Meta:
+        queryset = Driver.objects.all();
+        resource_name = 'driver'
+        include_resource_uri = False
+        
+    def alter_list_data_to_serialize(self, request, data_dict):
+        if isinstance(data_dict, dict):
+            if 'meta' in data_dict:
+                # Get rid of the "meta".
+                del(data_dict['meta'])
+                # Rename the objects.
+                data_dict['drivers'] = copy.copy(data_dict['objects'])
                 del(data_dict['objects'])
         return data_dict
 
@@ -44,6 +60,7 @@ class TrialResource(ModelResource):
 
 class TrialResultResource(ModelResource):
     #laps = fields.ToManyField(LapResource, 'laps',  full=True)
+    driver = fields.ForeignKey(DriverResource, 'driver')
 
     class Meta:
         queryset = TrialResult.objects.all()
@@ -51,7 +68,7 @@ class TrialResultResource(ModelResource):
         excludes = ['id']
         include_resource_uri = True
         filtering = {
-            'startnumber': ALL,
+            'driver': ['first_name', 'last_name'],
         }
         
     def alter_list_data_to_serialize(self, request, data_dict):
@@ -74,8 +91,18 @@ class LapResource(ModelResource):
         include_resource_uri = True
         authorization= Authorization()
         filtering = {
-            'trial_result': ALL_WITH_RELATIONS,
+            'trial_result': ['startnumber', 'driver'],
         }
+        
+    def alter_list_data_to_serialize(self, request, data_dict):
+        if isinstance(data_dict, dict):
+            if 'meta' in data_dict:
+                # Get rid of the "meta".
+                del(data_dict['meta'])
+                # Rename the objects.
+                data_dict['laps'] = copy.copy(data_dict['objects'])
+                del(data_dict['objects'])
+        return data_dict
         
 
 class LocationResource(ModelResource):
