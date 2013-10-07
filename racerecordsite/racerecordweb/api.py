@@ -59,8 +59,8 @@ class TrialResource(ModelResource):
         return data_dict
 
 class TrialResultResource(ModelResource):
-    #laps = fields.ToManyField(LapResource, 'laps',  full=True)
-    driver = fields.ForeignKey(DriverResource, 'driver')
+    laps = fields.ToManyField('racerecordweb.api.LapResource', 'laps', full=True)
+    driver = fields.ForeignKey(DriverResource, 'driver', full=True)
 
     class Meta:
         queryset = TrialResult.objects.all()
